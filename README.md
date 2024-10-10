@@ -7,8 +7,8 @@ like js promise;
 pod 'LWZPromise'
 ```
 
-```oc
-LWZPromise.promise(^(LWZPromiseContinuation * _Nonnull complete) {  // task 1
+```Objective-c
+SJPromise.promise(^(LWZPromiseContinuation * _Nonnull complete) {  // task 1
     dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(2 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
         // resolve
         complete.resolve(@(1));
