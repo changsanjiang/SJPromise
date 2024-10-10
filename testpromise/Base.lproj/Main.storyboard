@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="32700.99.1234" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="BYZ-38-t0r">
+    <device id="retina6_12" orientation="portrait" appearance="light"/>
+    <dependencies>
+        <deployment identifier="iOS"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="22685"/>
+        <capability name="Safe area layout guides" minToolsVersion="9.0"/>
+        <capability name="System colors in document resources" minToolsVersion="11.0"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+    </dependencies>
+    <scenes>
+        <!--View Controller-->
+        <scene sceneID="tne-QT-ifu">
+            <objects>
+                <viewController id="BYZ-38-t0r" customClass="ViewController" sceneMemberID="viewController">
+                    <view key="view" contentMode="scaleToFill" id="8bC-Xf-vdC">
+                        <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" distribution="fillEqually" alignment="center" translatesAutoresizingMaskIntoConstraints="NO" id="2TK-Ly-jka">
+                                <rect key="frame" x="0.0" y="59" width="393" height="759"/>
+                                <subviews>
+                                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="YbJ-fL-c7h">
+                                        <rect key="frame" x="132.66666666666666" y="0.0" width="127.99999999999997" height="95"/>
+                                        <state key="normal" title="Button"/>
+                                        <buttonConfiguration key="configuration" style="plain" title="测试常规流程"/>
+                                        <connections>
+                                            <action selector="test11:" destination="BYZ-38-t0r" eventType="touchUpInside" id="HlB-QY-VGb"/>
+                                        </connections>
+                                    </button>
+                                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Bm7-T1-svC">
+                                        <rect key="frame" x="132.66666666666666" y="95" width="127.99999999999997" height="94.666666666666686"/>
+                                        <state key="normal" title="Button"/>
+                                        <buttonConfiguration key="configuration" style="plain" title="测试异常捕获"/>
+                                        <connections>
+                                            <action selector="test22:" destination="BYZ-38-t0r" eventType="touchUpInside" id="vH3-U7-DXF"/>
+                                        </connections>
+                                    </button>
+                                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="isF-RR-pgA">
+                                        <rect key="frame" x="126.66666666666669" y="189.66666666666666" width="140" height="94.999999999999972"/>
+                                        <state key="normal" title="Button"/>
+                                        <buttonConfiguration key="configuration" style="plain" title="测试异常捕获2"/>
+                                        <connections>
+                                            <action selector="test33:" destination="BYZ-38-t0r" eventType="touchUpInside" id="VHu-NE-TzX"/>
+                                        </connections>
+                                    </button>
+                                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="g4V-qy-NFW">
+                                        <rect key="frame" x="112.66666666666667" y="284.66666666666669" width="167.66666666666663" height="95"/>
+                                        <state key="normal" title="Button"/>
+                                        <buttonConfiguration key="configuration" style="plain" title="LWZPromise.lazy()"/>
+                                        <connections>
+                                            <action selector="test44:" destination="BYZ-38-t0r" eventType="touchUpInside" id="Ni8-fP-NOq"/>
+                                        </connections>
+                                    </button>
+                                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="71P-8P-VL5">
+                                        <rect key="frame" x="117.33333333333333" y="379.66666666666669" width="158.33333333333337" height="94.666666666666686"/>
+                                        <state key="normal" title="Button"/>
+                                        <buttonConfiguration key="configuration" style="plain" title="测试 Promise.all()"/>
+                                        <connections>
+                                            <action selector="test55:" destination="BYZ-38-t0r" eventType="touchUpInside" id="GLs-rg-99i"/>
+                                        </connections>
+                                    </button>
+                                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="7gV-rH-7LL">
+                                        <rect key="frame" x="109" y="474.33333333333337" width="175" height="95"/>
+                                        <state key="normal" title="Button"/>
+                                        <buttonConfiguration key="configuration" style="plain" title="测试 Promise.race()"/>
+                                        <connections>
+                                            <action selector="test66:" destination="BYZ-38-t0r" eventType="touchUpInside" id="Sb0-fa-7dc"/>
+                                        </connections>
+                                    </button>
+                                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="LKr-Jq-yc7">
+                                        <rect key="frame" x="112.33333333333333" y="569.33333333333337" width="168.33333333333337" height="94.666666666666629"/>
+                                        <state key="normal" title="Button"/>
+                                        <buttonConfiguration key="configuration" style="plain" title="测试 Promise.any()"/>
+                                        <connections>
+                                            <action selector="test77:" destination="BYZ-38-t0r" eventType="touchUpInside" id="6zT-GP-jGn"/>
+                                        </connections>
+                                    </button>
+                                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="jee-bV-F83">
+                                        <rect key="frame" x="98.333333333333329" y="664" width="196.33333333333337" height="95"/>
+                                        <state key="normal" title="Button"/>
+                                        <buttonConfiguration key="configuration" style="plain" title="测试 Promise.resolve()"/>
+                                        <connections>
+                                            <action selector="test88:" destination="BYZ-38-t0r" eventType="touchUpInside" id="mdK-oc-GhT"/>
+                                        </connections>
+                                    </button>
+                                </subviews>
+                            </stackView>
+                        </subviews>
+                        <viewLayoutGuide key="safeArea" id="6Tk-OE-BBY"/>
+                        <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+                        <constraints>
+                            <constraint firstItem="2TK-Ly-jka" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" id="6TT-pg-6EG"/>
+                            <constraint firstItem="6Tk-OE-BBY" firstAttribute="bottom" secondItem="2TK-Ly-jka" secondAttribute="bottom" id="DpH-cE-EZs"/>
+                            <constraint firstItem="6Tk-OE-BBY" firstAttribute="trailing" secondItem="2TK-Ly-jka" secondAttribute="trailing" id="FGq-t7-BFu"/>
+                            <constraint firstItem="2TK-Ly-jka" firstAttribute="top" secondItem="6Tk-OE-BBY" secondAttribute="top" id="LRG-73-eIJ"/>
+                        </constraints>
+                    </view>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="dkx-z0-nzr" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="40" y="4"/>
+        </scene>
+        <!--View Controller-->
+        <scene sceneID="t0S-2J-QfA">
+            <objects>
+                <viewController id="mvS-Be-uDF" sceneMemberID="viewController">
+                    <view key="view" contentMode="scaleToFill" id="nj6-NC-U7j">
+                        <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <stackView opaque="NO" contentMode="scaleToFill" fixedFrame="YES" axis="vertical" translatesAutoresizingMaskIntoConstraints="NO" id="CKv-OJ-qFF">
+                                <rect key="frame" x="122" y="236" width="110" height="200"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                            </stackView>
+                        </subviews>
+                        <viewLayoutGuide key="safeArea" id="KSn-9n-6zg"/>
+                        <color key="backgroundColor" white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                    </view>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="x1e-vd-Nbz" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="1404" y="-493"/>
+        </scene>
+    </scenes>
+    <resources>
+        <systemColor name="systemBackgroundColor">
+            <color white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+        </systemColor>
+    </resources>
+</document>
