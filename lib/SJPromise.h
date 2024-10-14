@@ -57,8 +57,7 @@ typedef void(^SJPromiseFinalityHandler)(void);
 /// 该 block 块将会在子线程执行;
 @property (nonatomic, copy, readonly) SJPromise *(^finally)(SJPromiseFinalityHandler block);
 
-/// 接受一个 Promise 数组, 并返回一个新的 Promise; 这个新的 Promise 将等待数组中的 promise 全部执行成功(fulfilled) 此时新的 Promise 也会 fulfilled 并返回`value数组`;
-/// 但如果数组中的任意一个 promise 失败(rejected), 新的 Promise 会 rejected 并直接返回该错误;
+/// 接受一个 Promise 数组, 并返回一个新的 Promise, 它会记录数组中的每个 Promise 的值, 当全部执行成功后返回该数组; 但如果任意一个 promise 执行失败(rejected), 它会立刻 rejected 并直接返回该错误;
 ///
 /// 并发执行;
 ///
@@ -67,7 +66,7 @@ typedef void(^SJPromiseFinalityHandler)(void);
 /// 当你需要等待多个 Promise 并发执行, 并且其中任意一个失败就不再继续时可以使用 Promise.all();
 @property (nonatomic, copy, readonly, class) SJPromise *(^all)(NSArray<SJPromise *> *promises);
 
-/// 接受一个 Promise 数组, 并返回一个新的 Promise; 这个新的 Promise 将等待数组中的 promise 全部执行完成(无论它们是 fulfilled 还是 rejected), 此时新的 Promise 也会 fulfilled;
+/// 接受一个 Promise 数组, 并返回一个新的 Promise, 它会记录每个 Promise 的执行结果, 当全部执行结束后返回该数组;
 ///
 /// 并发执行;
 ///
@@ -76,11 +75,11 @@ typedef void(^SJPromiseFinalityHandler)(void);
 /// 用于等待多个 Promise 对象全部完成(无论它们是成功(fulfilled)还是失败(rejected)).
 @property (nonatomic, copy, readonly, class) SJPromise *(^allSettled)(NSArray<SJPromise *> *promises);
 
-/// 接受一个 Promise 数组, 并返回一个新的 Promise; 这个新的 Promise 将与第一个完成的 Promise(无论是成功或失败)保持相同的状态(fulfilled 或 rejected);
+/// 接受一个 Promise 数组, 并返回一个新的 Promise, 它会与第一个执行完成的 Promise 保持相同的状态无论是 fulfilled 还是 rejected;
 ///
 /// 并发执行;
 ///
-/// 当你只关心最先完成的异步操作, 而不在意其他异步操作的结果时, 可以使用 Promise.race(); 常见的场景包括超时控制;
+/// 当你只关心最先完成的异步操作, 而不在意其他操作的结果时, 可以使用 Promise.race(); 常见的场景包括超时控制;
 @property (nonatomic, copy, readonly, class) SJPromise *(^race)(NSArray<SJPromise *> *promises);
 
 /// 接受一个 Promise 数组, 并返回一个新的 Promise; 当数组中任意一个 Promise 成功(fulfilled)时, 它就会返回该成功值;
@@ -109,6 +108,11 @@ typedef void(^SJPromiseFinalityHandler)(void);
 ///
 /// 如果所有 Promise 都失败(rejected), 则返回 SJPromiseErrorCodeAggregateError, 表明所有 Promise 都被 rejected;
 @property (nonatomic, copy, readonly, class) SJPromise *(^firstPriority)(NSArray<SJPromise *> *promises);
+
+/// 阻塞当前线程, 等待 Promise 执行结束;
+@property (nonatomic, copy, readonly) SJPromiseResult *(^wait)(void);
+/// 阻塞当前线程, 等待 Promises 执行结束;
+@property (nonatomic, copy, readonly, class) NSArray<SJPromiseResult *> *(^join)(NSArray<SJPromise *> *promises);
 @end
 
 @interface SJPromiseContinuation: NSObject
@@ -132,27 +136,23 @@ typedef void(^SJPromiseFinalityHandler)(void);
 @interface SJPromise (Extensions)
 /// 可重试;
 ///
-/// 如果 Promise 执行失败(rejected), 进行新的订阅操作(then 或 fail 这两个订阅操作)就会触发重试, 即重新执行 retryableBlock, 新的执行结果会回调给执行期间发生的订阅;
+/// 当 Promise 处于失败状态再次对它进行新的监听操作时(then、fail、finally)会触发重试, 即重新执行 retryableBlock, 新的结果会传递给执行期间发生的监听;
 ///
-/// 也就是说当 Promise 处于失败状态, 当发生了新的订阅操作时就会触发重试, retryableBlock 将被重新执行, Promise 的状态也会被重置为 pending, 并等待执行完毕, 期间发生的订阅将在执行完毕后进行回调;
+/// 所以 retryableBlock 可能会执行多次, 要留意是否会造成循环引用, 以防止内存泄露;
 ///
-/// 要留意是否会造成循环引用, 以防止 retryableBlock 中的内存泄露;
-///
-/// 当你需要在 Promise 处于失败状态, 对它进行新的订阅操作时能自动重试可以使用 Promise.retryable();
+/// 当你需要在 Promise 处于失败状态, 再次对它进行新的监听操作能自动重试可以使用 Promise.retryable();
 @property (nonatomic, copy, readonly, class) SJPromise *(^retryable)(SJPromiseContinuationHandler retryableBlock);
 
 /// 延迟执行;
 ///
-/// 延迟 block 块的执行到第一次订阅操作时;
+/// block 块不会立即执行, 而是等待第一次监听操作(then、fail、finally)才开始执行块;
 ///
-/// block 块不会立即执行, 而是等待第一次订阅操作时才开始执行块;
-///
-/// 当你需要在 Promise 不立刻执行, 而是延迟到第一次订阅操作时才开始执行可以使用 Promise.lazy();
+/// 类似于懒加载, 当你需要在 Promise 不立刻执行, 而是在有监听操作时才开始执行可以使用 Promise.lazy();
 @property (nonatomic, copy, readonly, class) SJPromise *(^lazy)(SJPromiseContinuationHandler block);
 
 /// 延迟执行并且可重试;
 ///
-/// 延迟 block 块的执行到第一次订阅操作时, 并且可重试;
+/// 延迟 block 块的执行到第一次监听操作时, 并且失败后再次监听可重试;
 @property (nonatomic, copy, readonly, class) SJPromise *(^lazyAndRetryable)(SJPromiseContinuationHandler retryableBlock);
 
 /// 在指定的队列上执行block;
@@ -168,6 +168,7 @@ typedef void(^SJPromiseFinalityHandler)(void);
 
 @interface SJPromiseResult : NSObject
 @property (nonatomic, readonly) BOOL isFulfilled;
+@property (nonatomic, readonly) BOOL isRejected;
 @property (nonatomic, strong, readonly, nullable) id value;
 @property (nonatomic, strong, readonly, nullable) NSError *error;
 @end

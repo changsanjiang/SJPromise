@@ -8,27 +8,37 @@
 @class SJContinuationPromise;
 
 @interface SJPromiseResult ()
-@property (nonatomic, strong, nullable) id value;
-@property (nonatomic, strong, nullable) NSError *error;
-@property (nonatomic) BOOL isFulfilled;
 + (instancetype)fulfilledResultWithValue:(id _Nullable)value;
 + (instancetype)rejectedResultWithError:(NSError *)error;
+- (void)setFulfilledWithValue:(id _Nullable)value;
+- (void)setRejectedWithError:(NSError *)error;
 @end
 
 @implementation SJPromiseResult
 + (instancetype)fulfilledResultWithValue:(id _Nullable)value {
     SJPromiseResult *result = [SJPromiseResult.alloc init];
-    result.isFulfilled = YES;
-    result.value = value;
+    result->_isFulfilled = YES;
+    result->_value = value;
     return result;
 }
 + (instancetype)rejectedResultWithError:(NSError *)error {
     SJPromiseResult *result = [SJPromiseResult.alloc init];
-    result.error = error;
+    result->_error = error;
     return result;
+}
+- (void)setFulfilledWithValue:(id _Nullable)value {
+    _isFulfilled = YES;
+    _value = value;
+}
+- (void)setRejectedWithError:(NSError *)error {
+    if ( _isFulfilled ) _isFulfilled = NO;
+    _error = error;
 }
 - (NSString *)description {
     return [NSString stringWithFormat:@"SJPromiseResult<%p> { isFulfilled: %@, value: %@, error: %@ }", self, _isFulfilled ? @"true" : @"false", _value, _error];
+}
+- (BOOL)isRejected {
+    return !_isFulfilled;
 }
 @end
 
@@ -394,19 +404,19 @@ static dispatch_queue_t mPromiseQueue;
         for ( NSInteger i = 0 ; i < count ; ++ i ) {
             [results addObject:[SJPromiseResult.alloc init]];
         }
-        
-        __block BOOL rejected = NO;
+
         dispatch_group_t group = dispatch_group_create();
         [promises enumerateObjectsUsingBlock:^(SJPromise * _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
+            SJPromiseResult *result = results[idx];
             dispatch_group_enter(group);
-            [obj onFulfilled:^SJPromise * _Nullable(id  _Nullable value) {
-                results[idx].value = value;
+            [obj onFulfilled:^SJPromiseReturnValue _Nullable(id  _Nullable value) {
+                [result setFulfilledWithValue:value];
                 dispatch_group_leave(group);
                 return nil;
             }];
             
-            [obj onRejected:^SJPromise * _Nullable(NSError * _Nonnull error) {
-                if ( !rejected ) rejected = YES;
+            [obj onRejected:^SJPromiseReturnValue _Nullable(NSError * _Nonnull error) {
+                [result setRejectedWithError:error];
                 [continuation rejectWithError:error];
                 dispatch_group_leave(group);
                 return nil;
@@ -414,13 +424,14 @@ static dispatch_queue_t mPromiseQueue;
         }];
         
         dispatch_group_notify(group, dispatch_get_global_queue(0, 0), ^{
-            if ( !rejected ) {
-                NSMutableArray *values = [NSMutableArray arrayWithCapacity:count];
-                [results enumerateObjectsUsingBlock:^(SJPromiseResult * _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
-                    [values addObject:obj.value ?: [NSNull null]];
-                }];
-                [continuation resolveWithValue:values];
+            for ( SJPromiseResult *r in results ) {
+                if ( r.isRejected ) return; // 如果有rejected则return, 否则代表所有任务都成功了;
             }
+            NSMutableArray *values = [NSMutableArray arrayWithCapacity:count];
+            [results enumerateObjectsUsingBlock:^(SJPromiseResult * _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
+                [values addObject:obj.value ?: [NSNull null]];
+            }];
+            [continuation resolveWithValue:values];
         });
     }];
 }
@@ -437,15 +448,14 @@ static dispatch_queue_t mPromiseQueue;
         [promises enumerateObjectsUsingBlock:^(SJPromise * _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
             SJPromiseResult *result = results[idx];
             dispatch_group_enter(group);
-            [obj onFulfilled:^SJPromise * _Nullable(id  _Nullable value) {
-                result.isFulfilled = YES;
-                result.value = value;
+            [obj onFulfilled:^SJPromiseReturnValue _Nullable(id  _Nullable value) {
+                [result setFulfilledWithValue:value];
                 dispatch_group_leave(group);
                 return nil;
             }];
             
-            [obj onRejected:^SJPromise * _Nullable(NSError * _Nonnull error) {
-                result.error = error;
+            [obj onRejected:^SJPromiseReturnValue _Nullable(NSError * _Nonnull error) {
+                [result setRejectedWithError:error];
                 dispatch_group_leave(group);
                 return nil;
             }];
@@ -482,35 +492,36 @@ static dispatch_queue_t mPromiseQueue;
         for ( NSInteger i = 0 ; i < count ; ++ i ) {
             [results addObject:[SJPromiseResult.alloc init]];
         }
-        __block BOOL fulfilled = NO;
         dispatch_group_t group = dispatch_group_create();
         [promises enumerateObjectsUsingBlock:^(SJPromise * _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
+            SJPromiseResult *result = results[idx];
             dispatch_group_enter(group);
             [obj onFulfilled:^SJPromiseReturnValue _Nullable(id  _Nullable value) {
+                [result setFulfilledWithValue:value];
                 [continuation resolveWithValue:value];
-                if ( !fulfilled ) fulfilled = YES;
                 dispatch_group_leave(group);
                 return nil;
             }];
             
             [obj onRejected:^SJPromiseReturnValue _Nullable(NSError * _Nonnull error) {
-                results[idx].error = error;
+                [result setRejectedWithError:error];
                 dispatch_group_leave(group);
                 return nil;
             }];
         }];
 
         dispatch_group_notify(group, dispatch_get_global_queue(0, 0), ^{
-            if ( !fulfilled ) {
-                NSMutableArray<NSError *> *errors = [NSMutableArray arrayWithCapacity:count];
-                [results enumerateObjectsUsingBlock:^(SJPromiseResult * _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
-                    [errors addObject:obj.error];
-                }];
-                [continuation rejectWithError:[NSError.alloc initWithDomain:SJPromiseErrorDomain code:SJPromiseErrorCodeAggregateError userInfo:@{
-                    NSLocalizedDescriptionKey: @"All Promises rejected",
-                    SJPromiseAggregateErrorsKey: errors,
-                }]];
+            for ( SJPromiseResult *r in results ) {
+                if ( r.isFulfilled ) return; // 如果有fulfilled则return, 否则代表所有任务都失败了;
             }
+            NSMutableArray<NSError *> *errors = [NSMutableArray arrayWithCapacity:count];
+            [results enumerateObjectsUsingBlock:^(SJPromiseResult * _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
+                [errors addObject:obj.error];
+            }];
+            [continuation rejectWithError:[NSError.alloc initWithDomain:SJPromiseErrorDomain code:SJPromiseErrorCodeAggregateError userInfo:@{
+                NSLocalizedDescriptionKey: @"All Promises rejected",
+                SJPromiseAggregateErrorsKey: errors,
+            }]];
         });
     }];
 }
@@ -529,13 +540,13 @@ static dispatch_queue_t mPromiseQueue;
         SJPromiseResolvers *fallback = [SJPromise resolvers];
         dispatch_group_t group = dispatch_group_create();
         [promises enumerateObjectsUsingBlock:^(SJPromise * _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
+            SJPromiseResult *result = results[idx];
             dispatch_group_enter(group);
             // idx == 0 时为主请求
             [obj onFulfilled:^SJPromiseReturnValue _Nullable(id  _Nullable value) {
                 // 主请求 Promise 的优先级最高, 否则记录后续的首个后备值;
                 idx == 0 ? [continuation resolveWithValue:value] : fallback.resolve(value);
-                results[idx].isFulfilled = YES;
-                results[idx].value = value;
+                [result setFulfilledWithValue:value];
                 dispatch_group_leave(group);
                 return nil;
             }];
@@ -548,7 +559,7 @@ static dispatch_queue_t mPromiseQueue;
                         return nil;
                     }];
                 }
-                results[idx].error = error;
+                [result setRejectedWithError:error];
                 dispatch_group_leave(group);
                 return nil;
             }];
@@ -629,6 +640,39 @@ static dispatch_queue_t mPromiseQueue;
 + (SJPromise * _Nonnull (^)(NSArray<SJPromise *> * _Nonnull))firstPriority {
     return ^SJPromise *(NSArray<SJPromise *> *promises) {
         return [SJPromise promiseWithFirstPriority:promises];
+    };
+}
+
+- (SJPromiseResult * _Nonnull (^)(void))wait {
+    return ^SJPromiseResult *(void) {
+        dispatch_semaphore_t semaphore = dispatch_semaphore_create(0);
+        __block SJPromiseResult *result;
+        [self onFulfilled:^SJPromiseReturnValue _Nullable(id  _Nullable value) {
+            result = [SJPromiseResult fulfilledResultWithValue:value];
+            dispatch_semaphore_signal(semaphore);
+            return nil;
+        }];
+        [self onRejected:^SJPromiseReturnValue _Nullable(NSError * _Nonnull error) {
+            result = [SJPromiseResult rejectedResultWithError:error];
+            dispatch_semaphore_signal(semaphore);
+            return nil;
+        }];
+        dispatch_semaphore_wait(semaphore, DISPATCH_TIME_FOREVER);
+        return result;
+    };
+}
++ (NSArray<SJPromiseResult *> * _Nonnull (^)(NSArray<SJPromise *> * _Nonnull))join {
+    return ^NSArray<SJPromiseResult *> *(NSArray<SJPromise *> *promises) {
+        dispatch_semaphore_t semaphore = dispatch_semaphore_create(0);
+        __block NSArray<SJPromiseResult *> *results;
+        SJPromise *promise = SJPromise.allSettled(promises);
+        [promise onFulfilled:^SJPromiseReturnValue _Nullable(id  _Nullable value) {
+            results = value;
+            dispatch_semaphore_signal(semaphore);
+            return nil;
+        }];
+        dispatch_semaphore_wait(semaphore, DISPATCH_TIME_FOREVER);
+        return nil;
     };
 }
 @end
