@@ -394,6 +394,13 @@ static dispatch_queue_t mPromiseQueue;
 - (void)didComplete:(SJPromiseResult *)result { }
 @end
 
+
+@implementation SJPromise (Generics)
+- (SJPromise *)withThen:(SJPromiseReturnValue _Nullable (^)(id _Nullable value))block {
+    return [self onFulfilled:block];
+}
+@end
+
 @implementation SJPromise(PromiseLike)
 
 + (instancetype)promiseWithAll:(NSArray<SJPromise *> *)promises {

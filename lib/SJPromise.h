@@ -16,8 +16,12 @@ typedef SJPromiseReturnValue _Nullable (^SJPromiseFulfillmentHandler)(id _Nullab
 typedef SJPromiseReturnValue _Nullable (^SJPromiseRejectionHandler)(NSError *error);
 typedef void(^SJPromiseFinalityHandler)(void);
 
-@interface SJPromise : NSObject
+@interface SJPromise<T> : NSObject
 
+@end
+
+@interface SJPromise<T> (Generics)
+- (SJPromise *)withThen:(SJPromiseReturnValue _Nullable (^)(T _Nullable value))block;
 @end
 
 @interface SJPromise (PromiseLike)
